@@ -32,7 +32,7 @@ class SalonReservationSystem:
         try:
             with open(filename, mode='r') as file:
                 reader = csv.reader(file)
-                next(reader)  # Skip header
+                next(reader)  
                 for row in reader:
                     self.add_reservation(Reservation(row[0], row[1], row[2], row[3], row[4]))
         except Exception as e:
@@ -62,16 +62,81 @@ class ReservationApp:
         self.root.title("Salon Reservation System")
         self.root.geometry("800x600")
 
-        main_frame = tk.Frame(root, padx=10, pady=10)
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = tk.Frame(root, padx=10, pady=10)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        left_frame = tk.Frame(main_frame)
+        self.front_page = tk.Frame(self.main_frame, bg='#FF69B4')
+        self.front_page.pack(fill=tk.BOTH, expand=True)
+        
+        self.login_page = tk.Frame(self.main_frame, bg='#FF69B4')  
+        
+        self.reservation_page = tk.Frame(self.main_frame)
+
+        
+        self.salon_name_label = tk.Label(self.front_page, text="Dapper and Divine", font=("Arial", 24), bg='#FF69B4')
+        self.salon_name_label.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
+
+        self.salon_subtitle_label = tk.Label(self.front_page, text="Let Your Beauty Shine Ahead", font=("Arial", 16), bg='#FF69B4')
+        self.salon_subtitle_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+        self.enter_button = tk.Button(self.front_page, text="Enter", command=self.show_login_page)
+        self.enter_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
+
+        self.setup_login_page()
+        self.setup_reservation_page()
+
+    def setup_login_page(self):
+        tk.Label(self.login_page, text="Admin Login", font=("Arial", 24), bg='#FF69B4').pack(pady=20) 
+        tk.Label(self.login_page, text="Username", bg='#FF69B4').pack(pady=5)  
+        self.username_entry = tk.Entry(self.login_page)
+        self.username_entry.pack(pady=5)
+
+        tk.Label(self.login_page, text="Password", bg='#FF69B4').pack(pady=5) 
+        self.password_entry = tk.Entry(self.login_page, show="*")
+        self.password_entry.pack(pady=5)
+
+        self.login_button = tk.Button(self.login_page, text="Login", command=self.check_login)
+        self.login_button.pack(pady=20)
+
+    def show_login_page(self):
+        self.front_page.pack_forget()
+        self.login_page.pack(fill=tk.BOTH, expand=True)
+
+    def show_reservation_page(self):
+        self.login_page.pack_forget()
+        self.reservation_page.pack(fill=tk.BOTH, expand=True)
+
+    def setup_login_page(self):
+        tk.Label(self.login_page, text="Admin Login", font=("Arial", 24)).pack(pady=20)
+        tk.Label(self.login_page, text="Username").pack(pady=5)
+        self.username_entry = tk.Entry(self.login_page)
+        self.username_entry.pack(pady=5)
+
+        tk.Label(self.login_page, text="Password").pack(pady=5)
+        self.password_entry = tk.Entry(self.login_page, show="*")
+        self.password_entry.pack(pady=5)
+
+        self.login_button = tk.Button(self.login_page, text="Login", command=self.check_login)
+        self.login_button.pack(pady=20)
+
+    def check_login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if username == "BeauMin" and password == "beauty":  
+            messagebox.showinfo("Success", "Login successful")
+            self.show_reservation_page()
+        else:
+            messagebox.showerror("Error", "Invalid credentials")
+
+    def setup_reservation_page(self):
+        left_frame = tk.Frame(self.reservation_page)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
-        right_frame = tk.Frame(main_frame)
+        right_frame = tk.Frame(self.reservation_page)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Left Frame Widgets
+        
         tk.Label(left_frame, text="Data Pemesanan").pack()
 
         self.id_entry = tk.Entry(left_frame)
@@ -122,7 +187,6 @@ class ReservationApp:
         self.search_button = tk.Button(left_frame, text="Search Reservation", command=self.search_reservation)
         self.search_button.pack(pady=5)
 
-        # Right Frame for displaying reservations
         self.informasi_label = tk.Label(right_frame, text="Informasi Pemesanan")
         self.informasi_label.pack()
 
@@ -174,82 +238,82 @@ class ReservationApp:
             self.update_listbox()
             messagebox.showinfo("Success", "Reservation added successfully")
         else:
-            messagebox.showwarning("Input Error", "All fields must be filled out")
+            messagebox.showwarning("Error", "All fields must be filled out")
 
     def view_reservations(self):
-        self.system.sort_reservations()
         self.update_listbox()
 
+    def update_listbox(self):
+        for widget in self.scroll_frame.winfo_children():
+            widget.destroy()
+
+        reservations = self.system.view_reservations()
+        for reservation in reservations:
+            tk.Label(self.scroll_frame, text=f"ID: {reservation.id}, Name: {reservation.name}, Date: {reservation.date}, Time: {reservation.time}, Service: {reservation.service}").pack()
+
     def delete_reservation(self):
-        id = simpledialog.askstring("Input", "Enter ID of the reservation to cancel:")
-        if id:
-            if self.system.delete_reservation(id):
+        reservation_id = simpledialog.askstring("Cancel Reservation", "Enter reservation ID to cancel:")
+        if reservation_id:
+            if self.system.delete_reservation(reservation_id):
                 self.update_listbox()
-                self.reset_form()
                 messagebox.showinfo("Success", "Reservation cancelled successfully")
             else:
-                messagebox.showwarning("Error", "Reservation not found")
-        else:
-            messagebox.showwarning("Input Error", "ID must be provided")
+                messagebox.showwarning("Error", "Reservation ID not found")
 
     def update_reservation_window(self):
-        id = simpledialog.askstring("Input", "Enter ID of the reservation to update:")
-        if id:
-            existing_reservation = next((r for r in self.system.view_reservations() if r.id == id), None)
-            if existing_reservation:
-                self.show_update_dialog(existing_reservation)
+        reservation_id = simpledialog.askstring("Update Reservation", "Enter reservation ID to update:")
+        if reservation_id:
+            result = self.system.search_reservation(reservation_id)
+            if result:
+                self.update_reservation_window = tk.Toplevel(self.root)
+                self.update_reservation_window.title("Update Reservation")
+
+                tk.Label(self.update_reservation_window, text="Name").pack(pady=5)
+                self.update_name_entry = tk.Entry(self.update_reservation_window)
+                self.update_name_entry.pack(pady=5)
+                self.update_name_entry.insert(0, result[0].name)
+
+                tk.Label(self.update_reservation_window, text="Date").pack(pady=5)
+                self.update_date_entry = tk.Entry(self.update_reservation_window)
+                self.update_date_entry.pack(pady=5)
+                self.update_date_entry.insert(0, result[0].date)
+
+                tk.Label(self.update_reservation_window, text="Time").pack(pady=5)
+                self.update_time_entry = tk.Entry(self.update_reservation_window)
+                self.update_time_entry.pack(pady=5)
+                self.update_time_entry.insert(0, result[0].time)
+
+                tk.Label(self.update_reservation_window, text="Service").pack(pady=5)
+                self.update_service_entry = tk.Entry(self.update_reservation_window)
+                self.update_service_entry.pack(pady=5)
+                self.update_service_entry.insert(0, result[0].service)
+
+                tk.Button(self.update_reservation_window, text="Update", command=lambda: self.update_reservation(reservation_id)).pack(pady=20)
             else:
-                messagebox.showwarning("Error", "Reservation not found")
+                messagebox.showwarning("Error", "Reservation ID not found")
+
+    def update_reservation(self, reservation_id):
+        updated_name = self.update_name_entry.get()
+        updated_date = self.update_date_entry.get()
+        updated_time = self.update_time_entry.get()
+        updated_service = self.update_service_entry.get()
+
+        updated_reservation = Reservation(reservation_id, updated_name, updated_date, updated_time, updated_service)
+        if self.system.update_reservation(reservation_id, updated_reservation):
+            self.update_reservation_window.destroy()
+            self.update_listbox()
+            messagebox.showinfo("Success", "Reservation updated successfully")
         else:
-            messagebox.showwarning("Input Error", "ID must be provided")
-
-    def show_update_dialog(self, reservation):
-        update_dialog = tk.Toplevel(self.root)
-        update_dialog.title("Update Reservation")
-
-        tk.Label(update_dialog, text="Update Reservation", font=('Helvetica', 14)).pack(pady=10)
-
-        tk.Label(update_dialog, text="Name:").pack()
-        name_entry = tk.Entry(update_dialog, width=30)
-        name_entry.pack()
-        name_entry.insert(0, reservation.name)
-
-        tk.Label(update_dialog, text="Date:").pack()
-        date_entry = tk.Entry(update_dialog, width=30)
-        date_entry.pack()
-        date_entry.insert(0, reservation.date)
-
-        tk.Label(update_dialog, text="Time:").pack()
-        time_entry = tk.Entry(update_dialog, width=30)
-        time_entry.pack()
-        time_entry.insert(0, reservation.time)
-
-        tk.Label(update_dialog, text="Service:").pack()
-        service_entry = tk.Entry(update_dialog, width=30)
-        service_entry.pack()
-        service_entry.insert(0, reservation.service)
-
-        update_button = tk.Button(update_dialog, text="Update", command=lambda: self.update_reservation(id, name_entry.get(), date_entry.get(), time_entry.get(), service_entry.get(), update_dialog))
-        update_button.pack(pady=10)
-
-    def update_reservation(self, id, name, date, time, service, update_dialog):
-        if name and date and time and service:
-            updated_reservation = Reservation(id, name, date, time, service)
-            if self.system.update_reservation(id, updated_reservation):
-                update_dialog.destroy()
-                self.update_listbox()
-                messagebox.showinfo("Success", "Reservation updated successfully")
-            else:
-                messagebox.showwarning("Error", "Reservation not found")
-        else:
-            messagebox.showwarning("Input Error", "All fields must be filled out")
+            messagebox.showwarning("Error", "Reservation ID not found")
 
     def search_reservation(self):
-        name = simpledialog.askstring("Input", "Enter name to search:")
+        name = simpledialog.askstring("Search Reservation", "Enter name to search:")
         if name:
             results = self.system.search_reservation(name)
             if results:
-                self.update_listbox(results)
+                self.update_listbox()
+                for result in results:
+                    tk.Label(self.scroll_frame, text=f"ID: {result.id}, Name: {result.name}, Date: {result.date}, Time: {result.time}, Service: {result.service}").pack()
             else:
                 messagebox.showinfo("No Results", "No reservations found for the given name")
         else:
@@ -265,41 +329,33 @@ class ReservationApp:
         colors = ['#FFB6C1', '#ADD8E6', '#90EE90', '#FFD700', '#C0C0C0', '#FFA07A', '#87CEFA']
         
         for reservation in reservations:
-            # Pilih warna acak dari daftar warna
             color = random.choice(colors)
 
-            # ASCII art untuk bagian atas kartu
             ascii_art_top = """
             .-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-.
             |         RESERVATION DETAILS           |
             `-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'
             """
 
-            # ASCII art untuk bagian bawah kartu
             ascii_art_bottom = """
             .-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-.
             |                 CARD                  |
             `-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'
             """
 
-            # Tambahkan kartu ke dalam scroll_frame
             card = tk.Frame(self.scroll_frame, bd=2, relief=tk.SOLID, bg=color)
             card.pack(fill=tk.X, pady=5, padx=10)
 
-            # Tambahkan ASCII art ke dalam kartu
             tk.Label(card, text=ascii_art_top, bg=color).pack(anchor='w')
 
-            # Tampilkan detail reservasi dalam warna yang sama
             tk.Label(card, text=f"Name: {reservation.name}", bg=color).pack(anchor='w')
             tk.Label(card, text=f"Date: {reservation.date}", bg=color).pack(anchor='w')
             tk.Label(card, text=f"Time: {reservation.time}", bg=color).pack(anchor='w')
             tk.Label(card, text=f"Service: {reservation.service}", bg=color).pack(anchor='w')
             tk.Label(card, text=f"ID: {reservation.id}", bg=color).pack(anchor='w')
-
-            # Tambahkan ASCII art bawah ke dalam kartu
+            
             tk.Label(card, text=ascii_art_bottom, bg=color).pack(anchor='w')
 
-            # Tambahkan garis pemisah solid
             tk.Frame(card, height=2, bd=1, relief=tk.SUNKEN).pack(fill=tk.X, padx=5, pady=5)
 
     def reset_form(self):
