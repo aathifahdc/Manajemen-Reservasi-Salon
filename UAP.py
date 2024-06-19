@@ -42,6 +42,7 @@ class SalonReservationSystem:
         result = [reservation for reservation in self.reservations if reservation.id == id]
         return result
 
+
     def sort_reservations(self):
         self.reservations.sort(key=lambda x: (x.date, x.time))
 
@@ -307,7 +308,7 @@ class ReservationApp:
         else:
             messagebox.showwarning("Error", "Reservation ID not found")
 
-  def search_reservation(self):
+    def search_reservation(self):
         name = simpledialog.askstring("Search Reservation", "Enter ID to search:")
         if name:
             results = self.system.search_reservation(name)
