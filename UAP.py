@@ -307,8 +307,8 @@ class ReservationApp:
         else:
             messagebox.showwarning("Error", "Reservation ID not found")
 
-    def search_reservation(self):
-        name = simpledialog.askstring("Search Reservation", "Enter name to search:")
+  def search_reservation(self):
+        name = simpledialog.askstring("Search Reservation", "Enter ID to search:")
         if name:
             results = self.system.search_reservation(name)
             if results:
@@ -316,9 +316,9 @@ class ReservationApp:
                 for result in results:
                     tk.Label(self.scroll_frame, text=f"ID: {result.id}, Name: {result.name}, Date: {result.date}, Time: {result.time}, Service: {result.service}").pack()
             else:
-                messagebox.showinfo("No Results", "No reservations found for the given name")
+                messagebox.showinfo("No Results", "No reservations found for the given ID")
         else:
-            messagebox.showwarning("Input Error", "Name must be provided")
+            messagebox.showwarning("Input Error", "ID must be provided")
 
     def update_listbox(self, reservations=None):
         for widget in self.scroll_frame.winfo_children():
