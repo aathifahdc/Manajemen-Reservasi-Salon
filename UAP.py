@@ -38,8 +38,8 @@ class SalonReservationSystem:
         except Exception as e:
             print(f"Error reading CSV file: {e}")
 
-    def search_reservation(self, name):
-        result = [reservation for reservation in self.reservations if reservation.name.lower() == name.lower()]
+    def search_reservation(self, id):
+        result = [reservation for reservation in self.reservations if reservation.id == id]
         return result
 
     def sort_reservations(self):
@@ -264,7 +264,7 @@ class ReservationApp:
         reservation_id = simpledialog.askstring("Update Reservation", "Enter reservation ID to update:")
         if reservation_id:
             result = self.system.search_reservation(reservation_id)
-            if result:
+        if result:
                 self.update_reservation_window = tk.Toplevel(self.root)
                 self.update_reservation_window.title("Update Reservation")
 
@@ -289,8 +289,9 @@ class ReservationApp:
                 self.update_service_entry.insert(0, result[0].service)
 
                 tk.Button(self.update_reservation_window, text="Update", command=lambda: self.update_reservation(reservation_id)).pack(pady=20)
-            else:
-                messagebox.showwarning("Error", "Reservation ID not found")
+        else:
+            messagebox.showwarning("Error", "Reservation ID not found")
+
 
     def update_reservation(self, reservation_id):
         updated_name = self.update_name_entry.get()
